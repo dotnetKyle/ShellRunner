@@ -12,7 +12,7 @@ try
 
     if(args.Length == 0)
     {
-        Console.WriteLine("Provide an argument: 'bash', 'powershell', or 'cmd'");
+        Console.Error.WriteLine("Provide an argument: 'bash', 'powershell', or 'cmd'");
         return;
     }
 

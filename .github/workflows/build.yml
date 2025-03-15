@@ -33,7 +33,7 @@ jobs:
            -p:Version=$BUILD_VERSION
 
     - name: Test
-      run: dotnet $TEST_PATH
+      run: dotnet $TEST_PATH bash
            
     - name: Pack-Alpha
       run: dotnet pack $PROJECT_PATH

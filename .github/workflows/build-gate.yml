@@ -47,5 +47,5 @@ jobs:
         name: BuildArtifacts
         
     - name: Test
-      run: dotnet $TEST_PATH
+      run: dotnet $TEST_PATH bash
     
