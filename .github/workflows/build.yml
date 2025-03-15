@@ -9,8 +9,6 @@ env:
   SLN_PATH: src/ShellRunner.sln
   TEST_PATH: src/TestApp/bin/Release/net8.0/TestApp.dll
   PROJECT_PATH: src/ShellRunner/ShellRunner.csproj
-  PRE_RELEASE_ARTIFACTS: ./**/ShellRunner.$BUILD_VERSION-alpha.nupkg
-  RELEASE_ARTIFACTS: ./**/ShellRunner.$BUILD_VERSION.nupkg
 
 jobs:
   build:
@@ -41,6 +39,7 @@ jobs:
            --no-restore 
            --no-build
            -p:PackageVersion=$BUILD_VERSION-alpha
+           -o alpha-packages
 
     - name: Pack-Release
       run: dotnet pack $PROJECT_PATH
@@ -48,18 +47,21 @@ jobs:
            --no-restore 
            --no-build
            -p:PackageVersion=$BUILD_VERSION
+           -o packages
 
     - name: Upload ShellRunner PreRelease Artifacts
       uses: actions/upload-artifact@v4.6.1
       with:
         name: PreReleaseArtifacts
-        path: $PRE_RELEASE_ARTIFACTS
+        path: alpha-packages/*.nupkg
+        if-no-files-found: error
            
     - name: Upload ShellRunner Release Artifacts
       uses: actions/upload-artifact@v4.6.1
       with:
         name: ReleaseArtifacts
-        path: $RELEASE_ARTIFACTS
+        path: packages/*.nupkg
+        if-no-files-found: error
 
   pre-release:
     needs: build
