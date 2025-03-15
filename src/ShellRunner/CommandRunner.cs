@@ -71,34 +71,6 @@ public static class CommandRunner
 
         proc.Start();
 
-        proc.OutputDataReceived += (o,e) => {
-            try
-            {
-                if(e.Data is not null)
-                    PrintOutputData(e.Data);
-            }
-            catch (Exception ex)
-            {
-                PrintErrorData("Error while processing error data.");
-                PrintErrorData(ex.ToString());
-            }
-        };
-        proc.ErrorDataReceived += (o,e) => {
-            try
-            {
-                if (e.Data is not null)
-                    PrintErrorData(e.Data);
-            }
-            catch (Exception ex)
-            {
-                PrintErrorData("Error while processing error data.");
-                PrintErrorData(ex.ToString());
-            }
-        };
-
-        proc.BeginOutputReadLine();
-        proc.BeginErrorReadLine();
-
         var builder = new CommandBuilder(options, proc);
 
         return builder;
@@ -106,54 +78,12 @@ public static class CommandRunner
 
     public static CommandBuilder AddCommand(this CommandBuilder builder, string command)
     {
-        builder.Commands.Add(new TypicalCommand(command));
+        builder.AddCommand(new ProcessCommand(command, key:Guid.NewGuid().ToString()));
         return builder;
     }
-    public static CommandBuilder AddCommandWithOutput(this CommandBuilder builder, string command)
+    public static CommandBuilder AddCommand(this CommandBuilder builder, string command, string key)
     {
-        builder.Commands.Add(new GetOutputCommand(command));
+        builder.AddCommand(new ProcessCommand(command, key: key));
         return builder;
-    }
-
-    public static List<CommandOutput> Run(this CommandBuilder builder)
-    {
-        foreach(var cmd in builder.Commands)
-        {
-            cmd.RunCommand(builder.Process);
-            builder.Process.Refresh();
-        }
-
-        builder.Process.Refresh();
-
-        builder.Process.StandardInput.WriteLine("exit");
-
-        builder.Process.WaitForExit();
-
-        builder.Process.Close();
-
-        var outputs = new List<CommandOutput>();
-
-        foreach(var cmd in builder.Commands)
-        {
-            if(cmd is GetOutputCommand)
-            {
-                var output = (GetOutputCommand)cmd;
-                outputs.Add(new CommandOutput(output.Command, output.Output));
-            }
-        }
-
-        return outputs;
-    }
-
-    private static void PrintErrorData(string data)
-    {
-        var fg = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(data);
-        Console.ForegroundColor = fg;
-    }
-    private static void PrintOutputData(string data)
-    {
-        Console.WriteLine(data);
     }
 }

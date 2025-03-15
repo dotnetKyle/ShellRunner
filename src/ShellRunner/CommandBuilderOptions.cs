@@ -2,6 +2,7 @@
 
 namespace ShellRunner;
 
+[DebuggerDisplay("{Shell} {File} {Args}")]
 public record CommandBuilderOptions
 {
     public CommandBuilderOptions(ShellType shellType, string file, string args)
