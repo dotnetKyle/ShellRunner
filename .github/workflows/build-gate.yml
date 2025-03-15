@@ -5,20 +5,20 @@ on:
     branches: [ '*' ]
 
 env:
-  BUILD_VERSION: 0.1.${{github.run_number}}
+  BUILD_VERSION: 0.2.${{github.run_number}}
   SLN_PATH: src/ShellRunner.sln
-  TEST_PATH: src/TestApp/bin/Release/net6.0/TestApp.dll
+  TEST_PATH: src/TestApp/bin/Release/net8.0/TestApp.dll
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
         
     - name: Restore dependencies
       run: dotnet restore $SLN_PATH
@@ -30,7 +30,7 @@ jobs:
            -p:Version=$BUILD_VERSION
 
     - name: Upload ShellRunner Build Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4.6.1
       with:
         name: BuildArtifacts
         path: ./**/bin/Release/**/*
@@ -42,7 +42,7 @@ jobs:
     steps:
   
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.9
       with:
         name: BuildArtifacts
         

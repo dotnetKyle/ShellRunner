@@ -5,9 +5,9 @@ on:
     branches: [ "stable" ]
 
 env:
-  BUILD_VERSION: 0.1.${{github.run_number}}
+  BUILD_VERSION: 0.2.${{github.run_number}}
   SLN_PATH: src/ShellRunner.sln
-  TEST_PATH: src/TestApp/bin/Release/net6.0/TestApp.dll
+  TEST_PATH: src/TestApp/bin/Release/net8.0/TestApp.dll
   PROJECT_PATH: src/ShellRunner/ShellRunner.csproj
   PRE_RELEASE_ARTIFACTS: ./**/ShellRunner.$BUILD_VERSION-alpha.nupkg
   RELEASE_ARTIFACTS: ./**/ShellRunner.$BUILD_VERSION.nupkg
@@ -17,11 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     - name: Restore dependencies
       run: dotnet restore $SLN_PATH
@@ -50,13 +50,13 @@ jobs:
            -p:PackageVersion=$BUILD_VERSION
 
     - name: Upload ShellRunner PreRelease Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4.6.1
       with:
         name: PreReleaseArtifacts
         path: $PRE_RELEASE_ARTIFACTS
            
     - name: Upload ShellRunner Release Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4.6.1
       with:
         name: ReleaseArtifacts
         path: $RELEASE_ARTIFACTS
@@ -70,7 +70,7 @@ jobs:
     steps:
 
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.9
       with:
         name: PreReleaseArtifacts    
       
@@ -87,7 +87,7 @@ jobs:
     steps:
 
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.9
       with:
         name: ReleaseArtifacts    
            
