@@ -1,36 +1,71 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ShellRunner;
+
 public class CommandBuilder
 {
-    CommandBuilderOptions _options;
+    CommandBuilderOptions options;
+    List<ProcessCommand> commands;
+    Dictionary<string, ProcessCommand> commandMap;
 
     public ProcessStartInfo StartInfo { get; set; }
     public Process Process { get; set; }
+    public IReadOnlyList<IProcessedCommand> Commands => commands.AsReadOnly();
 
     internal CommandBuilder(CommandBuilderOptions options, Process process)
     {
         Process = process;
 
-        Commands = new List<ProcessCommand>();
-        
-        _options = options;
+        commands = new List<ProcessCommand>();
+        this.commandMap = new Dictionary<string, ProcessCommand>();
+
+        this.options = options;
 
         StartInfo = new ProcessStartInfo
         {
-            FileName = options.File,
-            Arguments = options.Args,
+            FileName = this.options.File,
+            Arguments = this.options.Args,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden,
             UseShellExecute = false,
-            RedirectStandardOutput = options.RedirectStandardOutput,
-            RedirectStandardError = options.RedirectStandardError, 
-            RedirectStandardInput = options.RedirectStandardInput
+            RedirectStandardOutput = this.options.RedirectStandardOutput,
+            RedirectStandardError = this.options.RedirectStandardError, 
+            RedirectStandardInput = this.options.RedirectStandardInput
         };
     }
 
-    public List<ProcessCommand> Commands { get; private set; }
+    /// <summary>
+    /// Add a command to the command list.
+    /// </summary>
+    /// <param name="command"></param>
+    /// <exception cref="ArgumentException">When a duplicate key is added.</exception>
+    public void AddCommand(ProcessCommand command)
+    {
+        this.commands.Add(command);
+
+        if(this.commandMap.ContainsKey(command.Key))
+            throw new ArgumentException($"Command with key \"{command.Key}\" already exists.");
+
+        this.commandMap.Add(command.Key, command);
+    }
+
+    /// <summary>
+    /// Get a specific command by key.
+    /// </summary>
+    /// <param name="key">The key for the command ran earlier.</param>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException">When a key isn't present in the dictionary.</exception>
+    public IProcessedCommand GetCommand(string key)
+    {
+        try
+        {
+            return this.commandMap[key];
+        }
+        catch (KeyNotFoundException)
+        {
+            throw new KeyNotFoundException($"Command with key \"{key}\" not found.");
+        }
+    }
 
     public CommandBuilder AddWorkingDirectory(string workingDirectory)
     {
@@ -38,41 +73,17 @@ public class CommandBuilder
         return this;
     }
 
-    private void Proc_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+    public async Task<CommandBuilder> RunAsync(CancellationToken cancellationToken = default)
     {
-        try
+        foreach(var command in commands)
         {
-            if (e.Data is null)
-                return;
+            if (cancellationToken.IsCancellationRequested)
+                break;
 
-            var fg = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Error: {e.Data}");
-            Console.ForegroundColor = fg;
+            await command.RunCommandAsync(this.Process, cancellationToken);
         }
-        catch(Exception ex)
-        {
-            var fg = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Error while processing error data.");
-            Console.WriteLine(ex);
-            Console.ForegroundColor = fg;
-        }
+
+        return this;
     }
 
-    private void Proc_OutputDataReceived(object sender, DataReceivedEventArgs e)
-    {
-        try
-        {
-            Console.WriteLine(e.Data);
-        }
-        catch (Exception ex)
-        {
-            var fg = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Error while processing output data.");
-            Console.WriteLine(ex);
-            Console.ForegroundColor = fg;
-        }
-    }
 }
