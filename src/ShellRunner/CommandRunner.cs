@@ -9,7 +9,7 @@ public static class CommandRunner
         var options = new CommandBuilderOptions(
             ShellType.Powershell, 
             "powershell",
-            "")
+            "-NoLogo")
         {
             RedirectStandardInput = true,
             RedirectStandardError = true,
